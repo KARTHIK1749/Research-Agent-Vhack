@@ -2,6 +2,7 @@
 Literature Agent - Fetches relevant papers from arXiv and analyzes them.
 Agent Contract: Takes graph state, updates ONLY state["papers"], returns updated state.
 """
+import re
 from typing import Dict, Any, List
 from app.services.arxiv_service import fetch_arxiv_papers
 from app.services.llm_service import llm_call
@@ -11,6 +12,51 @@ from app.utils.prompts import (
     LITERATURE_SYSTEM_PROMPT,
     LITERATURE_ANALYSIS_PROMPT
 )
+
+
+def _clean_literature_summary(text: str) -> str:
+    """
+    Clean literature summary while preserving structure and readability.
+    
+    Args:
+        text: Raw literature summary text
+        
+    Returns:
+        Cleaned, well-formatted text
+    """
+    if not text:
+        return text
+    
+    # Remove excessive stars but keep some formatting
+    text = re.sub(r'\*{3,}', '', text)  # Remove 3+ consecutive stars
+    text = re.sub(r'\*{2}', '', text)   # Remove double stars
+    
+    # Clean up excessive whitespace while preserving paragraph breaks
+    text = re.sub(r'\n\s*\n\s*\n', '\n\n', text)  # Multiple blank lines to double
+    text = re.sub(r'[ \t]+', ' ', text)           # Multiple spaces/tabs to single
+    
+    # Ensure proper spacing around headings
+    text = re.sub(r'([A-Z][A-Z\s]+:)', r'\n\1', text)  # Add newline before all-caps headings
+    
+    # Clean bullet points but keep structure
+    text = re.sub(r'•\s*', '• ', text)      # Normalize bullet points
+    text = re.sub(r'-\s*', '- ', text)      # Normalize dashes
+    
+    # Remove excessive punctuation
+    text = re.sub(r'[!]{2,}', '!', text)
+    text = re.sub(r'[?]{2,}', '?', text)
+    
+    # Clean up line endings
+    lines = text.split('\n')
+    cleaned_lines = []
+    for line in lines:
+        line = line.strip()
+        if line:  # Skip empty lines
+            cleaned_lines.append(line)
+        elif cleaned_lines and cleaned_lines[-1] != '':  # Keep single blank lines
+            cleaned_lines.append('')
+    
+    return '\n'.join(cleaned_lines)
 
 
 def run(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -86,10 +132,8 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
             temperature=0.3
         )
 
-        # Clean up special characters and formatting
-        summary = summary.replace("*", "").replace("•", "").replace("-", "")
-        # Remove excessive whitespace
-        summary = " ".join(summary.split())
+        # Clean up excessive formatting but preserve structure
+        summary = _clean_literature_summary(summary)
         
         state["literature_summary"] = summary
     else:

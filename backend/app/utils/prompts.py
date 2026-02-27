@@ -15,13 +15,30 @@ LITERATURE_ANALYSIS_PROMPT = """Research Goal: {research_goal}
 Retrieved Papers ({count} papers):
 {papers_summary}
 
-Analyze these papers and provide:
-1. Key themes across papers (2-3 points)
-2. Main methodologies used
-3. Major findings or conclusions
-4. Current state of research in this area
+Analyze these papers and provide a structured, refined analysis with the following format:
 
-Format as clean text without bullet points, stars, or special characters. Use numbered lists and plain paragraphs only."""
+KEY THEMES:
+1. [Theme Name]: [Brief description of the theme]
+2. [Theme Name]: [Brief description of the theme] 
+3. [Theme Name]: [Brief description of the theme]
+
+METHODOLOGIES:
+- Primary approaches used across papers
+- Common techniques and frameworks
+- Notable methodological patterns
+
+MAJOR FINDINGS:
+• [Key finding 1]
+• [Key finding 2]  
+• [Key finding 3]
+
+CURRENT STATE:
+[Concise paragraph summarizing the current research landscape]
+
+RESEARCH GAPS:
+[Identify 2-3 clear gaps or limitations in current research]
+
+Keep the analysis professional, concise, and well-structured. Use clear headings and bullet points for readability."""
 
 
 # GAP DETECTION AGENT
@@ -157,11 +174,16 @@ QUERY_OPTIMIZATION_PROMPT = """Research Goal: {research_goal}
 
 Rewrite this vague or broad research goal into an optimized arXiv search query.
 
-Requirements:
-- Use specific technical keywords
-- Include relevant ML/AI subfield terms
+CRITICAL REQUIREMENTS:
+- Keep the query SIMPLE and readable by arXiv API
+- Use basic Boolean operators: AND, OR, NOT
+- Limit to 2-3 main concepts with 2-3 synonyms each
+- Avoid excessive nesting of parentheses
+- Maximum 2 levels of parentheses depth
+- Use quotes for exact phrases: "machine learning"
 - Target 5-10 relevant papers
-- Format for arXiv search syntax
+
+Example format: "concept1" AND ("synonym1" OR "synonym2") AND "concept2"
 
 Output strictly as JSON with 'optimized_query' and 'rationale' fields."""
 

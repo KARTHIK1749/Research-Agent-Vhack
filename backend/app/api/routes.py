@@ -65,11 +65,18 @@ def _state_to_response(state: Dict[str, Any]) -> Dict[str, Any]:
 #         return ResearchStep.LITERATURE
 #     return "meta"  # Start with meta agent
 def _get_current_step_from_state(state: Dict[str, Any]) -> ResearchStep:
+    """Determine current step based on state content."""
     if state.get("review_feedback"):
-        return ResearchStep.COMPLETE
+        return ResearchStep.REVIEW
 
     if state.get("draft"):
         return ResearchStep.DRAFT
+
+    if state.get("dataset_recommendation"):
+        return ResearchStep.DATASET
+
+    if state.get("refined_output"):
+        return ResearchStep.REFLECTION
 
     if state.get("experiment"):
         return ResearchStep.EXPERIMENT
@@ -77,7 +84,16 @@ def _get_current_step_from_state(state: Dict[str, Any]) -> ResearchStep:
     if state.get("gaps"):
         return ResearchStep.GAP
 
-    return ResearchStep.LITERATURE
+    if state.get("related_work"):
+        return ResearchStep.RELATED_WORK
+
+    if state.get("papers"):
+        return ResearchStep.LITERATURE
+
+    if state.get("meta_optimization"):
+        return ResearchStep.META
+
+    return ResearchStep.META  # Start with meta agent
 
 ## sanitize state :
 def _sanitize_state(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -169,13 +185,15 @@ async def research_step(request: StepRequest):
     # Map step names
     step_mapping = {
         "meta": "meta",
+        ResearchStep.META: "meta",
         ResearchStep.LITERATURE: "literature",
-        "related_work": "related_work",
+        ResearchStep.RELATED_WORK: "related_work", 
         ResearchStep.GAP: "gap",
         ResearchStep.EXPERIMENT: "experiment",
-        "dataset": "dataset",
+        ResearchStep.REFLECTION: "reflection",
+        ResearchStep.DATASET: "dataset",
         ResearchStep.DRAFT: "draft",
-        "review": "review"
+        ResearchStep.REVIEW: "review"
     }
 
     agent_step = step_mapping.get(current_step, current_step)
@@ -192,12 +210,22 @@ async def research_step(request: StepRequest):
 
     # Determine next step
     next_step = get_next_step(agent_step)
-    if next_step == "draft":
-        next_step = ResearchStep.DRAFT
-    elif next_step == "experiment":
-        next_step = ResearchStep.EXPERIMENT
+    if next_step == "meta":
+        next_step = ResearchStep.META
+    elif next_step == "literature":
+        next_step = ResearchStep.LITERATURE
+    elif next_step == "related_work":
+        next_step = ResearchStep.RELATED_WORK
     elif next_step == "gap":
         next_step = ResearchStep.GAP
+    elif next_step == "experiment":
+        next_step = ResearchStep.EXPERIMENT
+    elif next_step == "reflection":
+        next_step = ResearchStep.REFLECTION
+    elif next_step == "dataset":
+        next_step = ResearchStep.DATASET
+    elif next_step == "draft":
+        next_step = ResearchStep.DRAFT
     else:
         next_step = ResearchStep.COMPLETE if updated_state.get("draft") else None
 
@@ -228,14 +256,18 @@ async def research_step(request: StepRequest):
             "experiment": updated_state.get("experiment", {}),
             "experiment_validation": updated_state.get("validations", {}).get("experiment")
         }
+    elif agent_step == "reflection":
+        output = {
+            "refined_output": updated_state.get("refined_output", {}),
+            "research_scores": updated_state.get("experiment", {}).get("research_scores", {})
+        }
     elif agent_step == "dataset":
         output = {
             "dataset_recommendation": updated_state.get("dataset_recommendation", {})
         }
     elif agent_step == "draft":
         output = {
-            "draft": updated_state.get("draft", {}),
-            "draft_validation": updated_state.get("validations", {}).get("draft")
+            "draft": updated_state.get("draft", {})
         }
     elif agent_step == "review":
         output = {
@@ -245,12 +277,13 @@ async def research_step(request: StepRequest):
     # Map completed step to enum
     completed_enum = {
         "meta": ResearchStep.LITERATURE,
-        "literature": ResearchStep.LITERATURE,
-        "related_work": ResearchStep.LITERATURE,
-        "gap": ResearchStep.GAP,
-        "experiment": ResearchStep.EXPERIMENT,
-        "dataset": ResearchStep.EXPERIMENT,
-        "draft": ResearchStep.DRAFT,
+        "literature": ResearchStep.RELATED_WORK,
+        "related_work": ResearchStep.GAP,
+        "gap": ResearchStep.EXPERIMENT,
+        "experiment": ResearchStep.REFLECTION,
+        "reflection": ResearchStep.DATASET,
+        "dataset": ResearchStep.DRAFT,
+        "draft": ResearchStep.REVIEW,
         "review": ResearchStep.COMPLETE
     }.get(agent_step, ResearchStep.LITERATURE)
 

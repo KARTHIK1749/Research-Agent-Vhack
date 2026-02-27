@@ -28,7 +28,7 @@ def call_gemini(
     user_prompt: str,
     temperature: float = 0.2,
     max_retries: int = 3,
-    model_name: str = "gemini-1.5-flash"
+    model_name: str = "gemini-2.5-flash"
 ) -> str:
     """
     Call Gemini API with structured prompts and retry logic.
@@ -89,7 +89,7 @@ def call_gemini_with_json_enforcement(
     user_prompt: str,
     temperature: float = 0.2,
     max_retries: int = 3,
-    model_name: str = "gemini-1.5-flash"
+    model_name: str = "gemini-2.5-flash"
 ) -> Dict[str, Any]:
     """
     Call Gemini with strict JSON output enforcement.
@@ -214,7 +214,8 @@ def test_gemini_connection() -> bool:
             system_prompt="You are a helpful assistant.",
             user_prompt="Respond with 'OK' to confirm connection.",
             temperature=0.1,
-            max_retries=1
+            max_retries=1,
+            model_name="gemini-2.5-flash"
         )
         return "OK" in response.upper()
     except Exception as e:
