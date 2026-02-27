@@ -1,8 +1,8 @@
-# MARIS v2 (Multi-Agent Research Intelligence System)
+# MARIS (Multi-Agent Research Intelligence System)
 
-A hackathon-ready, production-style MVP for MARIS v2 with advanced AI research capabilities including analytical gap detection, research intelligence scoring, and self-reflection loops.
+A hackathon-ready, production-style MVP for MARIS with advanced AI research capabilities including analytical gap detection, research intelligence scoring, and self-reflection loops.
 
-## 🚀 MARIS v2 Features
+## 🚀 MARIS Features
 
 ### Core Agents
 - **Meta Agent / Research Director**: Optimizes queries, scores gaps, validates outputs, auto-selects best gap
@@ -14,7 +14,7 @@ A hackathon-ready, production-style MVP for MARIS v2 with advanced AI research c
 - **Dataset Agent**: Recommends and manages datasets for experiments
 - **Related Work Agent**: Analyzes and synthesizes related research papers
 
-### 🧠 MARIS v2 Intelligence Features
+### 🧠 MARIS Intelligence Features
 
 #### Analytical Gap Engine
 - **KMeans Clustering**: Automatically clusters research papers to identify research landscapes
@@ -64,7 +64,7 @@ Paper Drafting Agent (Final Output)
 - **scikit-learn** for KMeans clustering
 - **sentence-transformers** for embeddings
 
-**MARIS v2 Intelligence Services:**
+**MARIS Intelligence Services:**
 - **clustering_service.py** - Analytical Gap Engine
 - **scoring_service.py** - Research Intelligence Score calculation
 - **gemini_service.py** - Centralized LLM wrapper with JSON enforcement
@@ -124,7 +124,7 @@ Open http://localhost:5173 in your browser.
 ## Project Structure
 
 ```
-maris-v2/
+maris/
 ├── backend/
 │   ├── app/
 │   │   ├── agents/           # 8 specialized agents
@@ -156,11 +156,11 @@ maris-v2/
 │   ├── package.json
 │   └── index.html
 │
-├── README.md                 # 🆕 Updated for v2
+├── README.md                 # 🆕 Updated with new features
 └── demo.md                   # Demo script
 ```
 
-## MARIS v2 Agent Workflow
+## MARIS Agent Workflow
 
 ```
 User Query
@@ -182,7 +182,7 @@ Dataset Agent (Data Recommendations)
 Paper Drafting Agent (Title + Abstract + Outline)
 ```
 
-## 🆕 MARIS v2 Output Format
+## 🆕 MARIS Output Format
 
 The final state now includes comprehensive research intelligence:
 
@@ -239,7 +239,7 @@ def run(state: dict) -> dict:
     return {"status": "healthy", "service": "maris"}
 ```
 
-## 🆕 MARIS v2 Demo Flow
+## 🆕 MARIS Demo Flow
 
 1. Enter research goal: *"Improving transformer efficiency for long sequences"*
 2. Literature Agent fetches 10 relevant papers and performs **KMeans clustering**
@@ -255,11 +255,11 @@ def run(state: dict) -> dict:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_API_KEY` | Yes | Gemini API key (OpenAI removed in v2) |
+| `GOOGLE_API_KEY` | Yes | Gemini API key (OpenAI removed) |
 | `BACKEND_PORT` | No | Backend port (default: 8000) |
 | `CORS_ORIGINS` | No | Allowed origins |
 
-### 🆕 MARIS v2 Dependencies
+### 🆕 MARIS Dependencies
 
 Updated `requirements.txt` includes:
 - `scikit-learn` - For KMeans clustering
