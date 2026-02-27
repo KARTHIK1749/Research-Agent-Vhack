@@ -11,3 +11,5 @@ arxiv
 requests
 python-dotenv
 numpy
+scikit-learn
+google-generativeai

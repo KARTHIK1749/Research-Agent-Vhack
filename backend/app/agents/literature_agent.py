@@ -5,6 +5,8 @@ Agent Contract: Takes graph state, updates ONLY state["papers"], returns updated
 from typing import Dict, Any, List
 from app.services.arxiv_service import fetch_arxiv_papers
 from app.services.llm_service import llm_call
+from app.services.embedding_service import create_paper_embeddings
+from app.services.clustering_service import cluster_embeddings, get_sparsest_cluster_papers
 from app.utils.prompts import (
     LITERATURE_SYSTEM_PROMPT,
     LITERATURE_ANALYSIS_PROMPT
@@ -37,7 +39,35 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
     # Step 2: Store papers in state
     state["papers"] = [p.model_dump() for p in papers]
 
-    # Step 3: Generate literature summary via LLM
+    # Step 3: Create embeddings and perform clustering analysis
+    if papers:
+        # Create embeddings
+        embeddings, papers_list = create_paper_embeddings(papers)
+        
+        # Perform clustering analysis
+        cluster_analysis = cluster_embeddings(embeddings.tolist(), n_clusters=5)
+        
+        # Get sparsest cluster papers
+        sparsest_papers = get_sparsest_cluster_papers(
+            [p.model_dump() for p in papers], 
+            cluster_analysis["labels"], 
+            cluster_analysis["sparsest_cluster"]
+        )
+        
+        # Store clustering results
+        state["cluster_analysis"] = {
+            "density": cluster_analysis["density"],
+            "sparsest_cluster": cluster_analysis["sparsest_cluster"],
+            "centroids": cluster_analysis["centroids"],
+            "sparsest_cluster_papers": sparsest_papers,
+            "n_clusters": cluster_analysis["n_clusters"],
+            "total_papers": cluster_analysis["total_papers"]
+        }
+        
+        # Store embeddings for later use
+        state["paper_embeddings"] = embeddings.tolist()
+
+    # Step 4: Generate literature summary via LLM
     if papers:
         papers_summary = "\n\n".join([
             f"Paper {i+1}:\nTitle: {p.title}\nSummary: {p.summary[:500]}..."
