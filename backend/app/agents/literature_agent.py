@@ -56,6 +56,11 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
             temperature=0.3
         )
 
+        # Clean up special characters and formatting
+        summary = summary.replace("*", "").replace("•", "").replace("-", "")
+        # Remove excessive whitespace
+        summary = " ".join(summary.split())
+        
         state["literature_summary"] = summary
     else:
         state["literature_summary"] = "No relevant papers found."

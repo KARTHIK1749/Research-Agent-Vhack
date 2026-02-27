@@ -1,6 +1,6 @@
-# AI Research Co-Scientist
+# MARIS (Multi-Agent Research Intelligence System)
 
-A hackathon-ready, production-style MVP for an AI multi-agent system that helps researchers go from idea to paper draft.
+A hackathon-ready, production-style MVP for MARIS (Multi-Agent Research Intelligence System) that helps researchers go from idea to paper draft.
 
 ## Features
 
@@ -9,13 +9,16 @@ A hackathon-ready, production-style MVP for an AI multi-agent system that helps 
 - **Gap Detection Agent**: Identifies unexplored research areas
 - **Experiment Design Agent**: Converts gaps into concrete, testable hypotheses
 - **Paper Drafting Agent**: Generates title, abstract, and outline
+- **Dataset Agent**: Recommends and manages datasets for experiments
+- **Related Work Agent**: Analyzes and synthesizes related research papers
+- **Reviewer Agent**: Provides peer review simulation and quality assessment
 
 ## Tech Stack
 
 **Backend:**
 - Python + FastAPI
 - LangGraph for multi-agent orchestration
-- Gemini/OpenAI for LLM calls
+- Gemini for LLM calls
 - arXiv API for literature retrieval
 - FAISS for vector similarity search
 
@@ -38,8 +41,6 @@ pip install -r requirements.txt
 Create `.env` file:
 ```
 GOOGLE_API_KEY=your_gemini_api_key_here
-# OR
-OPENAI_API_KEY=your_openai_api_key_here
 BACKEND_PORT=8000
 CORS_ORIGINS=http://localhost:5173
 ```
@@ -75,10 +76,10 @@ Open http://localhost:5173 in your browser.
 ## Project Structure
 
 ```
-ai-research-co-scientist/
+maris/
 ├── backend/
 │   ├── app/
-│   │   ├── agents/           # 4 modular agents
+│   │   ├── agents/           # 8 specialized agents
 │   │   ├── api/              # FastAPI routes
 │   │   ├── graph/            # LangGraph orchestration
 │   │   ├── models/           # Pydantic schemas
@@ -111,9 +112,15 @@ Literature Agent (arXiv fetch + analysis)
     ↓
 Gap Detection Agent (identify research gaps)
     ↓
+Related Work Agent (analyze related research)
+    ↓
 Experiment Design Agent (hypothesis + methodology)
     ↓
+Dataset Agent (recommend datasets)
+    ↓
 Paper Drafting Agent (title + abstract + outline)
+    ↓
+Reviewer Agent (peer review simulation)
 ```
 
 ## Agent Contract
@@ -124,7 +131,7 @@ def run(state: dict) -> dict:
     """Takes graph state, updates ONLY its own keys, returns updated state."""
     # Agent logic here
     state["agent_output"] = result
-    return state
+    return {"status": "healthy", "service": "maris"}
 ```
 
 ## Demo Flow
@@ -140,12 +147,9 @@ def run(state: dict) -> dict:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_API_KEY` | Yes* | Gemini API key |
-| `OPENAI_API_KEY` | Yes* | OpenAI API key |
+| `GOOGLE_API_KEY` | Yes | Gemini API key |
 | `BACKEND_PORT` | No | Backend port (default: 8000) |
 | `CORS_ORIGINS` | No | Allowed origins |
-
-*Only one LLM provider key is required.
 
 ## License
 

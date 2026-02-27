@@ -16,12 +16,12 @@ Retrieved Papers ({count} papers):
 {papers_summary}
 
 Analyze these papers and provide:
-1. Key themes across papers (2-3 bullet points)
+1. Key themes across papers (2-3 points)
 2. Main methodologies used
 3. Major findings or conclusions
 4. Current state of research in this area
 
-Format as concise bullet points."""
+Format as clean text without bullet points, stars, or special characters. Use numbered lists and plain paragraphs only."""
 
 
 # GAP DETECTION AGENT

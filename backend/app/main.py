@@ -18,14 +18,14 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
-    print("🚀 AI Research Co-Scientist starting up...")
+    print("🚀 MARIS (Multi-Agent Research Intelligence System) starting up...")
     yield
     # Shutdown
     print("👋 Shutting down...")
 
 
 app = FastAPI(
-    title="AI Research Co-Scientist",
+    title="MARIS (Multi-Agent Research Intelligence System)",
     description="Multi-agent system for automated research workflow",
     version="1.0.0",
     lifespan=lifespan
@@ -48,14 +48,14 @@ app.include_router(routes.router, prefix="/api", tags=["research"])
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "ai-research-co-scientist"}
+    return {"status": "healthy", "service": "maris"}
 
 
 @app.get("/")
 async def root():
     """Root endpoint with API info."""
     return {
-        "name": "AI Research Co-Scientist",
+        "name": "MARIS (Multi-Agent Research Intelligence System)",
         "version": "1.0.0",
         "endpoints": {
             "start_research": "POST /api/research/start",

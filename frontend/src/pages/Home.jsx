@@ -81,7 +81,7 @@ const Home = () => {
         <div className="text-center py-12">
           <Sparkles className="w-12 h-12 text-primary-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Welcome to AI Research Co-Scientist
+            Welcome to MARIS (Multi-Agent Research Intelligence System)
           </h2>
           <p className="text-gray-600 max-w-md mx-auto">
             Enter your research goal above to start an AI-powered research workflow.
@@ -256,7 +256,7 @@ const Home = () => {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-6 h-6 text-primary-600" />
-            <h1 className="text-xl font-bold text-gray-900">AI Research Co-Scientist</h1>
+            <h1 className="text-xl font-bold text-gray-900">MARIS</h1>
           </div>
           {sessionId && (
             <button
