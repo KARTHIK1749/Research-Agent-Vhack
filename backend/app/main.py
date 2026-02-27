@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import routes
-
 # Load environment variables
 load_dotenv()
 
@@ -19,6 +17,16 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     print("🚀 MARIS (Multi-Agent Research Intelligence System) starting up...")
+    
+    # Lazy load routes to avoid import chain issues
+    try:
+        from app.api import routes
+        app.include_router(routes.router, prefix="/api", tags=["research"])
+        print("✅ API routes loaded successfully")
+    except Exception as e:
+        print(f"⚠️ Failed to load API routes: {str(e)}")
+        print("🔄 Will retry on first request...")
+    
     yield
     # Shutdown
     print("👋 Shutting down...")
@@ -40,9 +48,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Include API routes
-app.include_router(routes.router, prefix="/api", tags=["research"])
 
 
 @app.get("/health")

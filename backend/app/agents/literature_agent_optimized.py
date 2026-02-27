@@ -1,6 +1,6 @@
 """
 Optimized Literature Agent - Fetches relevant papers from arXiv and analyzes them.
-Uses optimized services for better performance with detailed progress tracking.
+Uses optimized services for better performance.
 """
 import re
 from typing import Dict, Any, List
@@ -9,7 +9,6 @@ from app.services.llm_service_optimized import llm_call_optimized
 from app.services.embedding_service_optimized import create_paper_embeddings_optimized
 from app.services.clustering_service_optimized import cluster_embeddings_optimized, get_sparsest_cluster_papers
 from app.services.performance_service import monitor_performance, performance_monitor
-from app.services.progress_service import get_progress_tracker
 from app.utils.prompts import (
     LITERATURE_SYSTEM_PROMPT,
     LITERATURE_ANALYSIS_PROMPT
@@ -53,17 +52,16 @@ def _clean_literature_summary(text: str) -> str:
     cleaned_lines = []
     for line in lines:
         line = line.strip()
-        if line:  # Skip empty lines
+        if line:  # Only keep non-empty lines
             cleaned_lines.append(line)
-        elif cleaned_lines and cleaned_lines[-1] != '':  # Keep single blank lines
-            cleaned_lines.append('')
     
     return '\n'.join(cleaned_lines)
 
 
+@monitor_performance("literature_agent_run")
 def run(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Literature Agent: Fetches and analyzes papers from arXiv.
+    Optimized Literature Agent: Fetches and analyzes papers from arXiv.
 
     Args:
         state: Current graph state with "research_goal" key
@@ -72,13 +70,8 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
         Updated state with "papers" and "literature_summary" keys
     """
     research_goal = state.get("research_goal", "")
-    session_id = state.get("session_id", "default")
-    
-    # Get progress tracker
-    tracker = get_progress_tracker(session_id)
 
     if not research_goal:
-        tracker.fail_step("literature", "No research goal provided")
         state["error"] = "No research goal provided"
         return state
 
@@ -88,30 +81,45 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
         optimized_query = meta_optimization.get("optimized_query", research_goal)
 
         print(f"🔍 Literature Agent: Using query: {optimized_query}")
-        tracker.start_step("literature", "Initializing literature review")
 
-        # Step 1: Fetch papers from arXiv using optimized query
-        tracker.update_progress("literature", 10, "Fetching papers from arXiv")
-        papers = fetch_arxiv_papers(optimized_query, max_results=5)  # Reduced from 10 for speed
+        # Step 1: Fetch papers from arXiv using optimized service
+        papers_op_id = performance_monitor.start_operation("fetch_papers")
+        try:
+            papers = fetch_arxiv_papers(optimized_query, max_results=10)
+            performance_monitor.end_operation(papers_op_id, "fetch_papers", success=True)
+        except Exception as e:
+            performance_monitor.end_operation(papers_op_id, "fetch_papers", success=False, error_message=str(e))
+            raise
+
         print(f"📊 Literature Agent: Found {len(papers)} papers")
-        tracker.update_progress("literature", 30, f"Found {len(papers)} papers")
 
         # Step 2: Store papers in state
         state["papers"] = [p.model_dump() for p in papers]
 
-        # Step 3: Create embeddings and perform clustering analysis
+        # Step 3: Create embeddings and perform clustering analysis (if papers exist)
         if papers:
             try:
-                # Create embeddings
-                tracker.update_progress("literature", 40, "Creating paper embeddings")
-                embeddings, papers_list = create_paper_embeddings_optimized(papers)
-                print(f"🧠 Literature Agent: Created embeddings with shape {embeddings.shape}")
-                tracker.update_progress("literature", 60, "Analyzing research themes")
+                # Create embeddings using optimized service
+                embeddings_op_id = performance_monitor.start_operation("create_embeddings")
+                try:
+                    embeddings, papers_list = create_paper_embeddings_optimized(papers)
+                    performance_monitor.end_operation(embeddings_op_id, "create_embeddings", success=True)
+                except Exception as e:
+                    performance_monitor.end_operation(embeddings_op_id, "create_embeddings", success=False, error_message=str(e))
+                    raise
                 
-                # Perform clustering analysis
-                cluster_analysis = cluster_embeddings_optimized(embeddings.tolist(), n_clusters=5)
+                print(f"🧠 Literature Agent: Created embeddings with shape {embeddings.shape}")
+                
+                # Perform clustering analysis using optimized service
+                clustering_op_id = performance_monitor.start_operation("clustering_analysis")
+                try:
+                    cluster_analysis = cluster_embeddings_optimized(embeddings.tolist(), n_clusters=5)
+                    performance_monitor.end_operation(clustering_op_id, "clustering_analysis", success=True)
+                except Exception as e:
+                    performance_monitor.end_operation(clustering_op_id, "clustering_analysis", success=False, error_message=str(e))
+                    raise
+                
                 print(f"📈 Literature Agent: Cluster analysis complete")
-                tracker.update_progress("literature", 70, "Identifying research gaps")
                 
                 # Get sparsest cluster papers
                 sparsest_papers = get_sparsest_cluster_papers(
@@ -135,15 +143,14 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
                 
             except Exception as e:
                 print(f"⚠️ Literature Agent: Clustering failed: {str(e)}")
-                tracker.update_progress("literature", 70, f"Clustering failed: {str(e)}")
                 # Continue without clustering analysis
 
-            # Step 4: Generate literature summary via LLM
+            # Step 4: Generate literature summary via optimized LLM service
             try:
-                tracker.update_progress("literature", 80, "Generating literature summary")
+                # Use only top 5 papers for LLM to reduce token usage and improve speed
                 papers_summary = "\n\n".join([
-                    f"Paper {i+1}:\nTitle: {p.title}\nSummary: {p.summary[:200]}..."  # Reduced from 300 for speed
-                    for i, p in enumerate(papers[:3])  # Reduced from 5 for speed
+                    f"Paper {i+1}:\nTitle: {p.title}\nSummary: {p.summary[:300]}..."  # Reduced summary length
+                    for i, p in enumerate(papers[:5])
                 ])
 
                 user_prompt = LITERATURE_ANALYSIS_PROMPT.format(
@@ -152,44 +159,41 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
                     papers_summary=papers_summary
                 )
 
-                print("🤖 Literature Agent: Generating summary...")
-                summary = llm_call_optimized(
-                    system_prompt=LITERATURE_SYSTEM_PROMPT,
-                    user_prompt=user_prompt,
-                    temperature=0.3,
-                    use_cache=True
-                )
+                summary_op_id = performance_monitor.start_operation("generate_summary")
+                try:
+                    summary = llm_call_optimized(
+                        system_prompt=LITERATURE_SYSTEM_PROMPT,
+                        user_prompt=user_prompt,
+                        temperature=0.3,
+                        use_cache=True
+                    )
+                    performance_monitor.end_operation(summary_op_id, "generate_summary", success=True)
+                except Exception as e:
+                    performance_monitor.end_operation(summary_op_id, "generate_summary", success=False, error_message=str(e))
+                    raise
 
                 # Clean up excessive formatting but preserve structure
                 summary = _clean_literature_summary(summary)
                 
                 state["literature_summary"] = summary
                 print(f"📝 Literature Agent: Summary generated ({len(summary)} chars)")
-                tracker.update_progress("literature", 95, "Finalizing analysis")
                 
             except Exception as e:
                 print(f"⚠️ Literature Agent: Summary generation failed: {str(e)}")
-                tracker.fail_step("literature", f"Summary generation failed: {str(e)}")
                 state["literature_summary"] = f"Literature analysis failed: {str(e)}. Found {len(papers)} papers."
         else:
             state["literature_summary"] = "No relevant papers found."
             print("⚠️ Literature Agent: No papers found")
-            tracker.complete_step("literature", {"papers_found": 0})
-            return state
-
-        # Complete the step
-        tracker.complete_step("literature", {
-            "papers_found": len(papers),
-            "summary_length": len(state.get("literature_summary", "")),
-            "clusters_found": cluster_analysis.get("n_clusters", 0) if 'cluster_analysis' in state else 0
-        })
 
         return state
 
     except Exception as e:
         error_msg = f"Literature agent failed: {str(e)}"
         print(f"❌ Literature Agent: {error_msg}")
-        tracker.fail_step("literature", error_msg)
         state["error"] = error_msg
         state["literature_summary"] = f"Error: {error_msg}"
         return state
+
+def get_performance_stats() -> Dict[str, Any]:
+    """Get performance statistics for the literature agent."""
+    return performance_monitor.get_metrics_summary()

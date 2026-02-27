@@ -6,7 +6,7 @@ Includes Analytical Gap Engine, RIS scoring, and self-reflection loop.
 from typing import Dict, Any, TypedDict
 from langgraph.graph import StateGraph, END
 
-from app.agents import literature_agent, gap_agent, experiment_agent, drafting_agent, meta_agent, related_work_agent, dataset_agent, reviewer_agent
+from app.agents import literature_agent_optimized as literature_agent, gap_agent, experiment_agent, drafting_agent, meta_agent, related_work_agent, dataset_agent, reviewer_agent
 
 
 class ResearchGraphState(TypedDict, total=False):

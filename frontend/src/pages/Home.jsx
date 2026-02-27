@@ -4,6 +4,7 @@ import ChatInput from '../components/ChatInput';
 import Timeline from '../components/Timeline';
 import AgentOutputCard from '../components/AgentOutputCard';
 import RISCard from '../components/RISCard';
+import ProgressTracker from '../components/ProgressTracker';
 import { startResearch, executeStep } from '../services/api';
 
 const Home = () => {
@@ -350,14 +351,18 @@ const Home = () => {
           />
         </div>
 
-        {/* Research Goal Display */}
-        {researchGoal && (
-          <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-md">
-            <div className="flex items-center mb-2">
-              <Target className="w-5 h-5 text-blue-600 mr-2" />
-              <p className="text-sm font-medium text-blue-800">Research Goal:</p>
-            </div>
-            <p className="text-lg font-semibold text-gray-900">{researchGoal}</p>
+        {/* Current Research Goal */}
+        {sessionId && researchGoal && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm font-medium text-blue-800 mb-1">Current Research Goal:</p>
+            <p className="text-lg font-semibold text-blue-900">{researchGoal}</p>
+          </div>
+        )}
+
+        {/* Progress Tracker */}
+        {sessionId && (
+          <div className="mb-8">
+            <ProgressTracker sessionId={sessionId} isActive={true} />
           </div>
         )}
 
