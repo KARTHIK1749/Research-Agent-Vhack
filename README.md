@@ -160,27 +160,161 @@ maris/
 └── demo.md                   # Demo script
 ```
 
-## MARIS Agent Workflow
+## 🔄 Complete MARIS Workflow
+
+### Step-by-Step Research Process
+
+#### 🎯 **Step 1: Meta Agent - Research Director**
+**Input:** User's research goal (e.g., "Improving transformer efficiency for long sequences")
+- **Query Optimization:** Converts vague goals into arXiv-compatible search queries
+- **Gap Quality Scoring:** Evaluates identified gaps on novelty, feasibility, impact, and citation potential
+- **Auto-Selection:** Automatically selects best gap if user doesn't specify
+- **Output Validation:** Ensures all agent outputs are consistent and feasible
+
+**Output:** Optimized search query + gap scoring framework
+
+---
+
+#### 📚 **Step 2: Literature Agent - Knowledge Discovery**
+**Input:** Optimized search query from Meta Agent
+- **arXiv Integration:** Fetches 10 relevant papers using optimized query
+- **KMeans Clustering:** Groups papers into research landscapes (5 clusters)
+- **Embedding Creation:** Generates semantic embeddings for all papers
+- **Cluster Analysis:** Identifies density and distribution of research areas
+- **Literature Synthesis:** Provides structured analysis with key themes, methodologies, and findings
+
+**Output:** Papers + literature summary + cluster analysis + embeddings
+
+---
+
+#### 🔗 **Step 3: Related Work Agent - Context Analysis**
+**Input:** Literature analysis and paper clusters
+- **Related Research Synthesis:** Analyzes connections between papers
+- **Research Landscape Mapping:** Identifies major research streams and evolution
+- **Citation Patterns:** Understands how research builds upon previous work
+- **Context Establishment:** Provides foundation for gap identification
+
+**Output:** Comprehensive related work analysis
+
+---
+
+#### 🎯 **Step 4: Gap Detection Agent - Analytical Gap Engine**
+**Input:** Literature summary + cluster analysis
+- **Sparsest Cluster Detection:** Identifies underexplored research areas using KMeans results
+- **Data-Driven Gap Identification:** Uses cluster density instead of manual inspection
+- **Gap Prioritization:** Ranks gaps by research potential and feasibility
+- **Confidence Scoring:** Provides reliability metrics for each identified gap
+
+**Output:** 3-5 research gaps with confidence scores and sparsest cluster identification
+
+---
+
+#### 🧪 **Step 5: Experiment Design Agent - Hypothesis Generation**
+**Input:** Selected research gap + literature context
+- **Hypothesis Formulation:** Converts gaps into testable research hypotheses
+- **Research Intelligence Score (RIS) Calculation:**
+  - **Novelty Score:** Maximum Euclidean distance from cluster centroids
+  - **Feasibility Assessment:** Technical complexity evaluation
+  - **Impact Prediction:** Potential contribution and applications
+  - **Risk Analysis:** Failure probability and challenges
+- **Experiment Planning:** Dataset suggestions, metrics, baselines, and proposed methods
+
+**Output:** Research hypothesis + experiment plan + comprehensive RIS scores
+
+---
+
+#### 🔄 **Step 6: Reflection Agent - Self-Refinement Loop**
+**Input:** Original hypothesis + RIS scores + experiment plan
+- **Weakness Identification:** Detects logical flaws and unrealistic assumptions
+- **Hypothesis Refinement:** Proposes improved research hypotheses
+- **Iterative Improvement:** Recomputes RIS after reflection
+- **Confidence Tracking:** Monitors improvement and reliability metrics
+- **Improvement Quantification:** Measures RIS changes and confidence gains
+
+**Output:** Refined hypothesis + improvement metrics + updated RIS scores
+
+---
+
+#### 📊 **Step 7: Dataset Agent - Data Intelligence**
+**Input:** Refined hypothesis + experiment requirements
+- **Dataset Recommendations:** Suggests appropriate datasets for experiments
+- **Data Availability Check:** Verifies accessibility and quality of datasets
+- **Alternative Options:** Provides backup dataset choices
+- **Data Preparation Guidance:** Offers preprocessing and formatting advice
+
+**Output:** Dataset recommendations + data preparation guidelines
+
+---
+
+#### 📝 **Step 8: Paper Drafting Agent - Research Synthesis**
+**Input:** Refined hypothesis + dataset plan + complete research context
+- **Title Generation:** Creates compelling and accurate paper titles
+- **Abstract Writing:** Summarizes research contribution and methodology
+- **Outline Creation:** Provides structured paper outline with sections
+- **Key Contributions:** Highlights novel aspects and practical implications
+
+**Output:** Complete paper draft (title, abstract, outline)
+
+---
+
+### 🎯 **Workflow Visualization**
 
 ```
-User Query
-    ↓
-Meta Agent (Query Optimization + Gap Scoring + Validation)
-    ↓
-Literature Agent (arXiv fetch + Clustering Analysis)
-    ↓
-Related Work Agent (analyze related research)
-    ↓
-Gap Detection Agent (Analytical Gap Engine + Sparsest Cluster)
-    ↓
-Experiment Design Agent (Hypothesis + RIS Scoring)
-    ↓
-Reflection Agent (Self-Refinement Loop + RIS Recalculation)
-    ↓
-Dataset Agent (Data Recommendations)
-    ↓
-Paper Drafting Agent (Title + Abstract + Outline)
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   User Query    │───▶│   Meta Agent     │───▶│ Literature Agent│
+│                 │    │ (Query Optimize) │    │ (arXiv + Cluster)│
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                                        │
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│ Paper Draft     │◀───│  Dataset Agent   │◀───│Reflection Agent │
+│ (Title+Abstract)│    │ (Data Recs)      │    │ (Self-Refine)   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         ▲                                              │
+         │                    ┌──────────────────┐      │
+         └────────────────────│ Experiment Agent │◀─────┘
+                              │ (RIS Scoring)   │
+                              └──────────────────┘
+                                       ▲
+┌─────────────────┐    ┌──────────────────┐      │
+│ Related Work    │◀───│  Gap Detection   │◀─────┘
+│ Agent           │    │ (Analytical Gap) │
+└─────────────────┘    └──────────────────┘
 ```
+
+### 🔄 **Key Workflow Features**
+
+#### **Intelligence Loop Integration**
+- **Meta Agent** orchestrates entire workflow with quality control
+- **Reflection Loop** provides iterative improvement capability
+- **RIS Scoring** quantifies research quality at multiple stages
+- **Cluster Analysis** drives data-driven gap identification
+
+#### **Quality Assurance**
+- **Output Validation** ensures consistency between agents
+- **Gap Scoring** provides quantitative gap evaluation
+- **Confidence Metrics** track reliability throughout process
+- **Improvement Tracking** measures refinement benefits
+
+#### **User Interaction Points**
+- **Gap Selection:** User can choose specific research gap
+- **Hypothesis Review:** User can review and refine hypotheses
+- **Dataset Approval:** User can approve or modify dataset choices
+- **Draft Customization:** User can modify paper drafts
+
+### 📊 **Workflow Output Summary**
+
+Each step produces specific outputs that feed into the next stage:
+
+1. **Meta:** Optimized query + scoring framework
+2. **Literature:** Papers + clusters + embeddings + analysis
+3. **Related Work:** Contextual research landscape
+4. **Gap Detection:** Data-driven gaps with confidence scores
+5. **Experiment:** Hypothesis + RIS scores + experiment plan
+6. **Reflection:** Refined hypothesis + improvement metrics
+7. **Dataset:** Data recommendations + preparation guidance
+8. **Drafting:** Complete paper draft ready for submission
+
+This workflow ensures comprehensive research coverage from initial idea to final paper, with intelligence and quality control at every step.
 
 ## 🆕 MARIS Output Format
 
