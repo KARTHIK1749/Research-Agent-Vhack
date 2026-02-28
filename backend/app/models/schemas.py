@@ -8,15 +8,10 @@ from enum import Enum
 
 class ResearchStep(str, Enum):
     """Steps in the research workflow."""
-    META = "meta"
-    LITERATURE = "literature" 
-    RELATED_WORK = "related_work"
+    LITERATURE = "literature"
     GAP = "gap"
     EXPERIMENT = "experiment"
-    REFLECTION = "reflection"
-    DATASET = "dataset"
     DRAFT = "draft"
-    REVIEW = "review"
     COMPLETE = "complete"
 
 

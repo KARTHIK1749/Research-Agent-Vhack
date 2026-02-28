@@ -1,9 +1,9 @@
-# MARIS (Multi-Agent Research Intelligence System) - Demo Script
+# AI Research Co-Scientist - Demo Script
 
 ## Demo Flow (5 minutes)
 
 ### 1. Opening (30 seconds)
-"Today I'm demoing MARIS (Multi-Agent Research Intelligence System) - an AI multi-agent system that helps researchers go from 'I want to publish on X' to a complete paper draft in minutes."
+"Today I'm demoing AI Research Co-Scientist - an AI multi-agent system that helps researchers go from 'I want to publish on X' to a complete paper draft in minutes."
 
 ### 2. Start Research (1 minute)
 **Action:** Enter research goal in the chat input

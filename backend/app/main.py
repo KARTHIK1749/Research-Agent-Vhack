@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api import routes
+
 # Load environment variables
 load_dotenv()
 
@@ -16,24 +18,14 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
-    print("🚀 MARIS (Multi-Agent Research Intelligence System) starting up...")
-    
-    # Lazy load routes to avoid import chain issues
-    try:
-        from app.api import routes
-        app.include_router(routes.router, prefix="/api", tags=["research"])
-        print("✅ API routes loaded successfully")
-    except Exception as e:
-        print(f"⚠️ Failed to load API routes: {str(e)}")
-        print("🔄 Will retry on first request...")
-    
+    print("🚀 AI Research Co-Scientist starting up...")
     yield
     # Shutdown
     print("👋 Shutting down...")
 
 
 app = FastAPI(
-    title="MARIS (Multi-Agent Research Intelligence System)",
+    title="AI Research Co-Scientist",
     description="Multi-agent system for automated research workflow",
     version="1.0.0",
     lifespan=lifespan
@@ -49,18 +41,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include API routes
+app.include_router(routes.router, prefix="/api", tags=["research"])
+
 
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "maris"}
+    return {"status": "healthy", "service": "ai-research-co-scientist"}
 
 
 @app.get("/")
 async def root():
     """Root endpoint with API info."""
     return {
-        "name": "MARIS (Multi-Agent Research Intelligence System)",
+        "name": "AI Research Co-Scientist",
         "version": "1.0.0",
         "endpoints": {
             "start_research": "POST /api/research/start",

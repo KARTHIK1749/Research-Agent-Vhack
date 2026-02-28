@@ -11,7 +11,6 @@ Functions:
 Agent Contract: Takes graph state, updates ONLY its own keys, returns updated state.
 """
 import json
-import re
 from typing import Dict, Any, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -32,95 +31,6 @@ from app.utils.prompts import (
     GAP_OUTPUT_SCHEMA
 )
 from app.agents import literature_agent, gap_agent
-
-
-def _clean_text(text: str) -> str:
-    """
-    Clean text output by removing special characters and excessive formatting.
-    
-    Args:
-        text: Raw text to clean
-        
-    Returns:
-        Cleaned text
-    """
-    if not text:
-        return text
-    
-    # Remove stars and asterisks
-    text = re.sub(r'\*+', '', text)
-    
-    # Remove excessive whitespace
-    text = re.sub(r'\s+', ' ', text)
-    
-    # Remove special bullet characters
-    text = re.sub(r'[•·▪▫◦‣⁃]', '-', text)
-    
-    # Clean up numbering
-    text = re.sub(r'^\d+\.\s*', '', text, flags=re.MULTILINE)
-    
-    # Remove excessive punctuation
-    text = re.sub(r'[!]{2,}', '!', text)
-    text = re.sub(r'[?]{2,}', '?', text)
-    
-    # Clean parentheses and quotes
-    text = re.sub(r'\(\s*\)', '', text)
-    text = re.sub(r'"\s*"', '', text)
-    
-    # Strip and return
-    return text.strip()
-
-
-def _simplify_query(query: str) -> str:
-    """
-    Simplify overly complex arXiv queries to avoid HTTP 400 errors.
-    
-    Args:
-        query: Complex query string
-        
-    Returns:
-        Simplified query string
-    """
-    if not query:
-        return query
-    
-    # Count parenthesis depth
-    depth = 0
-    max_depth = 0
-    
-    for char in query:
-        if char == '(':
-            depth += 1
-            max_depth = max(max_depth, depth)
-        elif char == ')':
-            depth -= 1
-    
-    # If query is too complex (more than 2 levels deep), simplify it
-    if max_depth > 2:
-        # Extract main concepts using simple pattern matching
-        # Look for quoted phrases and simple AND/OR connections
-        quoted_terms = re.findall(r'"([^"]+)"', query)
-        
-        if len(quoted_terms) >= 2:
-            # Create simple query with top 3-4 terms
-            main_terms = quoted_terms[:4]
-            simplified = ' AND '.join(f'"{term}"' for term in main_terms)
-            return simplified
-        else:
-            # Fallback: extract simple words
-            words = re.findall(r'\b\w+\b', query)
-            important_words = [w for w in words if len(w) > 3][:4]
-            return ' AND '.join(important_words)
-    
-    # Check for excessive length (>500 chars may cause issues)
-    if len(query) > 500:
-        # Truncate and simplify
-        quoted_terms = re.findall(r'"([^"]+)"', query)
-        if quoted_terms:
-            main_terms = quoted_terms[:3]
-            return ' AND '.join(f'"{term}"' for term in main_terms)
-    
-    return query
 
 
 def run(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -190,26 +100,13 @@ def _optimize_query(state: Dict[str, Any]) -> None:
             temperature=0.3
         )
 
-        # Clean the outputs
-        optimized_query = _clean_text(result.get("optimized_query", research_goal))
-        rationale = _clean_text(result.get("rationale", ""))
-        
-        # Simplify query to avoid arXiv API errors
-        simplified_query = _simplify_query(optimized_query)
-
-        state["meta_optimization"]["optimized_query"] = simplified_query
-        state["meta_optimization"]["query_rationale"] = rationale
-        
-        # Add note if query was simplified
-        if simplified_query != optimized_query:
-            state["meta_optimization"]["query_simplified"] = True
-            state["meta_optimization"]["original_query"] = optimized_query
+        state["meta_optimization"]["optimized_query"] = result.get("optimized_query", research_goal)
+        state["meta_optimization"]["query_rationale"] = result.get("rationale", "")
 
     except Exception as e:
-        # Fallback: use simple version of original goal
-        simplified_goal = _simplify_query(research_goal)
-        state["meta_optimization"]["optimized_query"] = simplified_goal
-        state["meta_optimization"]["query_rationale"] = f"Using simplified original goal (optimization failed: {str(e)})"
+        # Fallback: use original goal
+        state["meta_optimization"]["optimized_query"] = research_goal
+        state["meta_optimization"]["query_rationale"] = f"Using original goal (optimization failed: {str(e)})"
 
 
 def _run_parallel_literature_gap(state: Dict[str, Any]) -> None:
@@ -411,15 +308,7 @@ def optimize_research_goal(research_goal: str) -> Dict[str, str]:
             output_schema=QUERY_OPTIMIZATION_SCHEMA,
             temperature=0.3
         )
-        
-        # Clean the outputs
-        optimized_query = _clean_text(result.get("optimized_query", research_goal))
-        rationale = _clean_text(result.get("rationale", ""))
-        
-        return {
-            "optimized_query": optimized_query,
-            "rationale": rationale
-        }
+        return result
     except Exception as e:
         return {
             "optimized_query": research_goal,

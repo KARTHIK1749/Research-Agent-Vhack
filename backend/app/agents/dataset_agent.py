@@ -11,7 +11,7 @@ Instead of vague "use standard benchmark" suggestions, this agent provides:
 Agent Contract: Takes graph state, updates ONLY state["dataset_recommendation"], returns updated state.
 """
 from typing import Dict, Any, List
-from app.services.llm_service_optimized import llm_call_structured
+from app.services.llm_service import llm_call_structured
 from app.utils.prompts import (
     DATASET_SYSTEM_PROMPT,
     DATASET_RECOMMENDATION_PROMPT,
@@ -56,84 +56,55 @@ def run(state: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Updated state with "dataset_recommendation" key
     """
+    experiment = state.get("experiment", {})
+    gaps = state.get("gaps", [])
+    selected_gap_idx = state.get("selected_gap", 0)
+    research_goal = state.get("research_goal", "")
+
+    if not experiment:
+        state["error"] = "No experiment design available for dataset recommendation"
+        return state
+
+    # Get gap description
+    gap_description = ""
+    if gaps and selected_gap_idx < len(gaps):
+        gap_description = gaps[selected_gap_idx].get("description", "")
+
+    # Get current dataset suggestion from experiment
+    current_suggestion = experiment.get("dataset_suggestion", "")
+
     try:
-        print("🗂️ Dataset Agent: Starting dataset recommendation...")
-        
-        experiment = state.get("experiment", {})
-        gaps = state.get("gaps", [])
-        selected_gap_idx = state.get("selected_gap", 0)
-        research_goal = state.get("research_goal", "")
-
-        print(f"📊 Dataset Agent: Research goal: {research_goal[:50]}...")
-
-        if not experiment:
-            print("❌ Dataset Agent: No experiment design available")
-            state["error"] = "No experiment design available for dataset recommendation"
-            return state
-
-        # Get gap description
-        gap_description = ""
-        if gaps and selected_gap_idx < len(gaps):
-            gap_description = gaps[selected_gap_idx].get("description", "")
-            print(f"🎯 Dataset Agent: Gap: {gap_description[:50]}...")
-
-        # Get current dataset suggestion from experiment
-        current_suggestion = experiment.get("dataset_suggestion", "")
-        proposed_method = experiment.get("proposed_method", "")
-        print(f"🔬 Dataset Agent: Proposed method: {proposed_method[:50]}...")
-
         # Generate concrete dataset recommendation
-        try:
-            user_prompt = DATASET_RECOMMENDATION_PROMPT.format(
-                research_goal=research_goal,
-                gap_description=gap_description,
-                current_suggestion=current_suggestion,
-                proposed_method=proposed_method
-            )
+        user_prompt = DATASET_RECOMMENDATION_PROMPT.format(
+            research_goal=research_goal,
+            gap_description=gap_description,
+            current_suggestion=current_suggestion,
+            proposed_method=experiment.get("proposed_method", "")
+        )
 
-            print("🤖 Dataset Agent: Generating recommendation...")
-            result = llm_call_structured(
-                system_prompt=DATASET_SYSTEM_PROMPT,
-                user_prompt=user_prompt,
-                output_schema=DATASET_OUTPUT_SCHEMA,
-                temperature=0.3
-            )
+        result = llm_call_structured(
+            system_prompt=DATASET_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            output_schema=DATASET_OUTPUT_SCHEMA,
+            temperature=0.3
+        )
 
-            # Validate and enrich with known URLs if available
-            recommendation = _enrich_dataset_info(result)
-            
-            print(f"✅ Dataset Agent: Recommended {recommendation.get('primary_dataset', 'Unknown')}")
-            print(f"📊 Dataset Agent: Dataset size: {recommendation.get('size', 'Unknown')}")
-            
-            state["dataset_recommendation"] = recommendation
+        # Validate and enrich with known URLs if available
+        recommendation = _enrich_dataset_info(result)
 
-        except Exception as e:
-            print(f"⚠️ Dataset Agent: LLM recommendation failed: {str(e)}")
-            # Use fallback recommendation
-            print("🔄 Dataset Agent: Using fallback recommendation...")
-            state["dataset_recommendation"] = {
-                "primary_dataset": "CIFAR-10",
-                "description": "Standard benchmark dataset (fallback due to LLM error)",
-                "size": "60,000 images",
-                "url": "https://www.cs.toronto.edu/~kriz/cifar.html",
-                "preprocessing": "Normalize to [0,1], data augmentation",
-                "alternatives": ["MNIST", "ImageNet-subset"],
-                "suitability_rationale": "Generic fallback dataset - LLM service unavailable"
-            }
+        state["dataset_recommendation"] = recommendation
 
     except Exception as e:
-        error_msg = f"Dataset agent failed: {str(e)}"
-        print(f"❌ Dataset Agent: {error_msg}")
-        state["error"] = error_msg
-        # Ultimate fallback
+        state["error"] = f"Dataset recommendation failed: {str(e)}"
+        # Fallback recommendation
         state["dataset_recommendation"] = {
             "primary_dataset": "CIFAR-10",
-            "description": "Standard benchmark dataset (ultimate fallback)",
-            "size": "60,000 images", 
+            "description": "Standard benchmark dataset (fallback)",
+            "size": "60,000 images",
             "url": "https://www.cs.toronto.edu/~kriz/cifar.html",
             "preprocessing": "Normalize to [0,1], data augmentation",
-            "alternatives": ["MNIST", "Fashion-MNIST"],
-            "suitability_rationale": f"Emergency fallback - error: {str(e)}"
+            "alternatives": ["MNIST", "ImageNet-subset"],
+            "suitability_rationale": "Generic fallback dataset"
         }
 
     return state
